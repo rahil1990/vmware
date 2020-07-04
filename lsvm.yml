@@ -1,0 +1,70 @@
+- name: Gather all registered virtual machines
+  vmware_vm_info:
+    hostname: '{{ vcenter_hostname }}'
+    username: '{{ vcenter_username }}'
+    password: '{{ vcenter_password }}'
+  delegate_to: localhost
+  register: vminfo
+
+- debug:
+    var: vminfo.virtual_machines
+
+- name: Gather only registered virtual machine templates
+  vmware_vm_info:
+    hostname: '{{ vcenter_hostname }}'
+    username: '{{ vcenter_username }}'
+    password: '{{ vcenter_password }}'
+    vm_type: template
+  delegate_to: localhost
+  register: template_info
+
+- debug:
+    var: template_info.virtual_machines
+
+- name: Gather only registered virtual machines
+  vmware_vm_info:
+    hostname: '{{ vcenter_hostname }}'
+    username: '{{ vcenter_username }}'
+    password: '{{ vcenter_password }}'
+    vm_type: vm
+  delegate_to: localhost
+  register: vm_info
+
+- debug:
+    var: vm_info.virtual_machines
+
+- name: Get UUID from given VM Name
+  block:
+    - name: Get virtual machine info
+      vmware_vm_info:
+        hostname: '{{ vcenter_hostname }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        folder: "/datacenter/vm/folder"
+      delegate_to: localhost
+      register: vm_info
+
+    - debug:
+        msg: "{{ item.uuid }}"
+      with_items:
+        - "{{ vm_info.virtual_machines | json_query(query) }}"
+      vars:
+        query: "[?guest_name=='DC0_H0_VM0']"
+
+- name: Get Tags from given VM Name
+  block:
+    - name: Get virtual machine info
+      vmware_vm_info:
+        hostname: '{{ vcenter_hostname }}'
+        username: '{{ vcenter_username }}'
+        password: '{{ vcenter_password }}'
+        folder: "/datacenter/vm/folder"
+      delegate_to: localhost
+      register: vm_info
+
+    - debug:
+        msg: "{{ item.tags }}"
+      with_items:
+        - "{{ vm_info.virtual_machines | json_query(query) }}"
+      vars:
+        query: "[?guest_name=='DC0_H0_VM0']"
